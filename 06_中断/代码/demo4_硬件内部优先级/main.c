@@ -6,7 +6,7 @@ NVIC_InitTypeDef NVIC_InitStructure;
 
 void delay(void)
 {
-	uint32_t i=0xA000000;//unsigned int
+	uint32_t i=0x2000000;//unsigned int
 	
 	while(i--);
 
@@ -25,7 +25,7 @@ int main(void)
 	//uint32_t *pf9 = (uint32_t *)0x424282A4;
 	
 	/* 支持4级抢占优先级，4级响应优先级 */
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 	
 	/* 使能端口F的硬件时钟，说白就是端口F进行供电，默认情况下，硬件时钟是被关闭的，咱们要开启 */
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA,ENABLE);	
@@ -44,6 +44,7 @@ int main(void)
 	GPIO_InitStructure.GPIO_PuPd=GPIO_PuPd_NOPULL;//不使能上下拉电阻
 	GPIO_Init(GPIOF,&GPIO_InitStructure);
 	
+	
 	GPIO_InitStructure.GPIO_Mode=GPIO_Mode_OUT;//输出模式
 	GPIO_InitStructure.GPIO_Pin=GPIO_Pin_13|GPIO_Pin_14;//第13 14号引脚
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出类型
@@ -60,9 +61,9 @@ int main(void)
 	GPIO_InitStructure.GPIO_PuPd=GPIO_PuPd_NOPULL;//不使能上下拉电阻
 	GPIO_Init(GPIOA,&GPIO_InitStructure);	
 	
-	/* 配置GPIOE的2 3 号引脚为输入式 */
+	/* 配置GPIOE的2 3 4号引脚为输入式 */
 	GPIO_InitStructure.GPIO_Mode=GPIO_Mode_IN;//输入模式
-	GPIO_InitStructure.GPIO_Pin=GPIO_Pin_2|GPIO_Pin_3;//第2 3号引脚
+	GPIO_InitStructure.GPIO_Pin=GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4;//第2 3 4号引脚
 	//GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出类型
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;//引脚的工作速度，速度越高，响应越快，但是功耗也高。
 	GPIO_InitStructure.GPIO_PuPd=GPIO_PuPd_NOPULL;//不使能上下拉电阻
@@ -76,10 +77,15 @@ int main(void)
 	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE,EXTI_PinSource2);	
 	
 	/* 将PE3连接到EXTI3 */
-	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE,EXTI_PinSource3);		
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE,EXTI_PinSource3);
+	
+	/* 将PE4连接到EXTI4 */
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE,EXTI_PinSource4);
+
+	
 	
 	/* 初始化EXTI0 EXTI2 EXTI3*/
-	EXTI_InitStructure.EXTI_Line = EXTI_Line0|EXTI_Line2|EXTI_Line3;	//指定EXTI0 EXTI2 EXTI3
+	EXTI_InitStructure.EXTI_Line = EXTI_Line0|EXTI_Line2|EXTI_Line3|EXTI_Line4;	//指定EXTI0 EXTI2 EXTI3
 	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;//中断模式
 	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling; //下降沿触发，用于检测按键的按下 
 	EXTI_InitStructure.EXTI_LineCmd = ENABLE;//使能EXTI0
@@ -88,20 +94,27 @@ int main(void)
 	/* 设置NVIC中的EXTI0中断 */
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;//EXTI0的中断号
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x00;//抢占优先级
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x03;//响应（子）优先级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x04;//响应（子）优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//打开EXTI0的请求通道
 	NVIC_Init(&NVIC_InitStructure);
 	
 	/* 设置NVIC中的EXTI2中断 */
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI2_IRQn;//EXTI2的中断号
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;//抢占优先级
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x01;//响应（子）优先级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x03;//响应（子）优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//打开EXTI0的请求通道
 	NVIC_Init(&NVIC_InitStructure);	
 	
 	/* 设置NVIC中的EXTI3中断 */
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI3_IRQn;//EXTI3的中断号
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;//抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x02;//抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02;//响应（子）优先级
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//打开EXTI0的请求通道
+	NVIC_Init(&NVIC_InitStructure);		
+	
+	/* 设置NVIC中的EXTI4中断 */
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI4_IRQn;//EXTI4的中断号
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x03;//抢占优先级
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x01;//响应（子）优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//打开EXTI0的请求通道
 	NVIC_Init(&NVIC_InitStructure);		
@@ -189,3 +202,26 @@ void EXTI3_IRQHandler(void)
 		EXTI_ClearITPendingBit(EXTI_Line3);
 	}	
 }
+
+void EXTI4_IRQHandler(void)
+{
+	/* 检测标志位 */
+	if(EXTI_GetITStatus(EXTI_Line4) == SET)
+	{
+
+		/* 添加用户代码 */
+		PEout(14)=0;
+		
+		delay();
+		
+		PEout(14)=1;
+		
+		delay();		
+
+		/* 清空标志位，告诉CPU当前中断请求已完毕，可以响应新EXTI0的中断请求
+		思考题：若不清空标志位，会出现什么现象？
+		*/
+		EXTI_ClearITPendingBit(EXTI_Line4);
+	}	
+}
+
