@@ -453,6 +453,7 @@ int main(void)
 	GPIO_InitStructure.GPIO_PuPd=GPIO_PuPd_NOPULL;//不使能上下拉电阻
 	GPIO_Init(GPIOF,&GPIO_InitStructure);
 	
+	PFout(8)=0;
 	PFout(9)=1;
 	PFout(10)=1;
 	
@@ -529,16 +530,15 @@ int main(void)
 			g_rtc_wakeup_event=0;
 			
 		}
-		while(g_rtc_clock_event)	//闹钟响了,按key0关掉才行 否则100秒后自动关闭
+		if(g_rtc_clock_event)	//闹钟响了,按key0关掉才行 否则100秒后自动关闭
 		{
-			g_rtc_clock_event=0;
-			PFout(10) = 0;
-//			PFout(8) = 1;
 			
-			delay_ms(2000);
+			g_rtc_clock_event = 0;
 			
-			PFout(10) = 1;
-			PFout(8) = 0;	
+			PFout(8) = !PFout(8);
+			PFout(10) = !PFout(10);  
+			delay_ms(500);           
+				
 		}
 		
 		if(g_usart1_event || g_usart3_event){
@@ -715,9 +715,9 @@ void EXTI0_IRQHandler(void)
 	/* 检测标志位 */
 	if(EXTI_GetITStatus(EXTI_Line0) == SET)
 	{
-		g_rtc_clock_event=0;
-//		PFout(10)=1;
-//		PFout(8)=0;
+	
+		PFout(10)=1;
+		PFout(8)=0;
 		
 
 		/* 清空标志位，告诉CPU当前中断请求已完毕，可以响应新EXTI0的中断请求
