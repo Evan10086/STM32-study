@@ -28,9 +28,7 @@ static volatile uint32_t g_usart3_cnt=0;
 static volatile uint32_t g_usart3_event=0;
 
 /*闹钟*/
-static volatile uint8_t  g_usart2_buf[64]={0};
-static volatile uint32_t g_usart2_cnt=0;
-static volatile uint32_t g_usart2_event=0;
+
 
 
 struct __FILE { int handle; /* Add whatever you need here */ };
@@ -424,7 +422,6 @@ volatile uint32_t g_rtc_clock_event=0;
 int main(void)
 {
 	char *p;
-	uint8_t i=0;
 //	char *p_temp;
 //	uint8_t year, month, day, week, hour, minute, second;
 	/* 一定要为32位类型变量，否则取出字符串数据内容会丢失数据 */
@@ -480,6 +477,8 @@ int main(void)
 	
 	
 	
+	
+	
 	/* 串口1波特率为115200bps (注意:保证PLL配置正确，否则收发数据乱码)*/
 	usart1_init(115200);
 	
@@ -530,7 +529,7 @@ int main(void)
 			g_rtc_wakeup_event=0;
 			
 		}
-		if(g_rtc_clock_event)	//闹钟响了,按key0关掉才行 否则100秒后自动关闭
+		if(g_rtc_clock_event)	//闹钟响了,按key0关掉才行
 		{
 			
 			g_rtc_clock_event = 0;
@@ -610,6 +609,45 @@ int main(void)
 					//usart3_send_str("TIME set ok\r\n");
 					printf("TIME set ok\r\n");
 				}
+				
+				if(strstr((const char *)g_usart1_buf,"ALARM SET"))
+				{
+					p=strtok((char *)g_usart1_buf,"-");
+					
+					printf("p=%s\r\n",p);//DATE SET
+
+					p=strtok(NULL,"-");
+					if(p==NULL)
+						goto end;
+					printf("p=%s\r\n",p);//时
+					RTC_AlarmStructure.RTC_AlarmTime.RTC_Hours = atoi(p);
+					
+					p=strtok(NULL,"-");
+					if(p==NULL)
+						goto end;
+					printf("p=%s\r\n",p);//分
+					RTC_AlarmStructure.RTC_AlarmTime.RTC_Minutes = atoi(p);
+					
+					p=strtok(NULL,"-");
+					if(p==NULL)
+						goto end;
+					printf("p=%s\r\n",p);//秒
+					RTC_AlarmStructure.RTC_AlarmTime.RTC_Seconds = atoi(p);
+					
+					RTC_AlarmCmd(RTC_Alarm_A, DISABLE);
+					
+					RTC_SetAlarm(RTC_Format_BIN, RTC_Alarm_A, &RTC_AlarmStructure);
+					
+					/* 让RTC的闹钟A工作*/
+					RTC_AlarmCmd(RTC_Alarm_A, ENABLE);
+				
+					
+					//usart3_send_str("TIME set ok\r\n");
+					printf("Clcck set ok\r\n");
+				}
+				
+				
+
 				
 				
 				
