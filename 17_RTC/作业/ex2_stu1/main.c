@@ -418,6 +418,7 @@ void RTC_AlarmShow(void)
 
 volatile uint32_t g_rtc_wakeup_event=0;
 volatile uint32_t g_rtc_clock_event=0;
+volatile uint32_t g_rtc_clockoff_event=1;
 
 int main(void)
 {
@@ -510,7 +511,7 @@ int main(void)
 		
 		/* 配置闹钟 */
 		
-		set_rtc_clock(0x20, 0x16, 0x30);
+//		set_rtc_clock(0x20, 0x16, 0x30);
 	}
 	
 	
@@ -534,9 +535,11 @@ int main(void)
 			
 			g_rtc_clock_event = 0;
 			
-			PFout(8) = !PFout(8);
-			PFout(10) = !PFout(10);  
-			delay_ms(500);           
+			
+				PFout(8) = 1;
+				PFout(10) = 0;
+				delay_ms(500);
+							
 				
 		}
 		
@@ -754,8 +757,10 @@ void EXTI0_IRQHandler(void)
 	if(EXTI_GetITStatus(EXTI_Line0) == SET)
 	{
 	
-		PFout(10)=1;
-		PFout(8)=0;
+		g_rtc_clockoff_event = 0;
+		PFout(8) ^=0;
+		PFout(10) ^=1;
+		
 		
 
 		/* 清空标志位，告诉CPU当前中断请求已完毕，可以响应新EXTI0的中断请求
